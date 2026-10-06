@@ -155,7 +155,7 @@ public sealed class DebuffWindow : Window
             }
 
             // Category 2 = detrimental status.
-            if (config.OnlyDebuffs && row.Category != 2)
+            if (config.OnlyDebuffs && row.StatusCategory != 2)
             {
                 continue;
             }
