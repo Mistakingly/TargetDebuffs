@@ -21,7 +21,15 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
+      - name: Download Dalamud
+        run: |
+          wget https://goatcorp.github.io/dalamud-distrib/latest.zip -O latest-dalamud.zip
+          mkdir -p /home/runner/dalamud
+          unzip latest-dalamud.zip -d /home/runner/dalamud
+
       - name: Build
+        env:
+          DALAMUD_HOME: /home/runner/dalamud
         run: dotnet build TargetDebuffs.csproj -c Release -p:Version=${{ github.ref_name }}
 
       - name: Locate package
