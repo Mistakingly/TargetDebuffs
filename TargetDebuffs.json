@@ -1,0 +1,8 @@
+{
+  "Author": "Anna",
+  "Name": "Target Debuffs",
+  "Punchline": "Your DoTs and debuffs on the target, shown wherever you want.",
+  "Description": "Displays the statuses you apply to your current target in a separate overlay that can be dragged anywhere and locked in place. Use /tdebuffs to open settings.",
+  "Tags": ["UI", "Debuffs", "DoT", "HUD"],
+  "InternalName": "TargetDebuffs"
+}

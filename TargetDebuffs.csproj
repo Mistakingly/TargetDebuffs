@@ -1,0 +1,8 @@
+<Project Sdk="Dalamud.NET.Sdk/15.0.0">
+  <PropertyGroup>
+    <Version>1.0.0.0</Version>
+    <Description>Shows the statuses you apply to your target in a separate, draggable, lockable overlay.</Description>
+    <PackageProjectUrl>https://example.com</PackageProjectUrl>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+</Project>

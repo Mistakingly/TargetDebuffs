@@ -1,0 +1,59 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - '*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Build
+        run: dotnet build TargetDebuffs.csproj -c Release -p:Version=${{ github.ref_name }}
+
+      - name: Locate package
+        run: |
+          ZIP=$(find . -name latest.zip | head -n 1)
+          echo "Found: $ZIP"
+          cp "$ZIP" TargetDebuffs.zip
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: TargetDebuffs.zip
+
+      - name: Update repo.json
+        run: |
+          VERSION=${{ github.ref_name }}
+          URL="https://github.com/${{ github.repository }}/releases/download/${VERSION}/TargetDebuffs.zip"
+          NOW=$(date +%s)
+          jq --arg v "$VERSION" --arg u "$URL" --argjson t "$NOW" --arg repo "https://github.com/${{ github.repository }}" '
+            .[0].AssemblyVersion = $v
+            | .[0].TestingAssemblyVersion = $v
+            | .[0].RepoUrl = $repo
+            | .[0].DownloadLinkInstall = $u
+            | .[0].DownloadLinkTesting = $u
+            | .[0].DownloadLinkUpdate = $u
+            | .[0].LastUpdate = $t' repo.json > repo.tmp
+          mv repo.tmp repo.json
+
+      - name: Commit repo.json
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add repo.json
+          git commit -m "Update repo.json for ${{ github.ref_name }}" || echo "No changes"
+          git push origin HEAD:main
