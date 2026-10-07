@@ -8,16 +8,6 @@ using FFXIVClientStructs.FFXIV.Component.GUI;
 
 namespace TargetDebuffs;
 
-// Hides the statuses the overlay is showing from the game's own target status bar.
-//
-// Layout (same one BigPlayerDebuffs relies on): the target's 30 status slots are image nodes in the addon's node list.
-//   Split target frame  "_TargetInfoBuffDebuff": slot k = NodeList[31 - k]
-//   Merged target frame "_TargetInfo":            slot k = NodeList[32 - k]
-// Slots 0-14 are the first row (25px apart), 15-29 the second row.
-// The game places statuses applied by you first, so your own statuses occupy the first slots.
-//
-// The game re-shows icons whenever it refreshes them (for example as timers tick), so the hiding is applied in the
-// addon's PreDraw event: after the game has updated the bar, immediately before it is drawn. That avoids flicker.
 public sealed unsafe class TargetBarHider : IDisposable
 {
     private const int MaxSlots = 30;
@@ -65,7 +55,6 @@ public sealed unsafe class TargetBarHider : IDisposable
 
     public bool BigPlayerDebuffsLoaded { get; private set; }
 
-    // Called once per frame from the framework update; only refreshes the BigPlayerDebuffs check.
     public void Update()
     {
         if (frame++ % 120 != 0)
@@ -94,8 +83,6 @@ public sealed unsafe class TargetBarHider : IDisposable
                 return;
             }
 
-            // Re-read the target's statuses right now, so a status applied this very frame is already
-            // included and gets hidden before the first draw (otherwise it flashes for one frame).
             tracker.Update();
             ApplyToAddon(a, restoreOnly: false);
         }
@@ -124,7 +111,6 @@ public sealed unsafe class TargetBarHider : IDisposable
             }
         }
 
-        // Closing gaps moves icons around, which would fight BigPlayerDebuffs (it also repositions them).
         var compact = config.HideNativeBar && config.CloseGaps && !BigPlayerDebuffsLoaded && !restoreOnly;
 
         var nodes = unit->UldManager.NodeList;
@@ -150,7 +136,6 @@ public sealed unsafe class TargetBarHider : IDisposable
 
             if (hid[k])
             {
-                // Only show it again if a status really sits in this slot; empty slots must stay hidden.
                 if (occupied)
                 {
                     node->ToggleVisibility(true);
@@ -207,7 +192,6 @@ public sealed unsafe class TargetBarHider : IDisposable
 
         try
         {
-            // Put everything back the way the game had it.
             for (var a = 0; a < Addons.Length; a++)
             {
                 ApplyToAddon(a, restoreOnly: true);

@@ -29,7 +29,6 @@ public sealed class DebuffWindow : Window
 
     public override void PreDraw()
     {
-        // The window position is remembered between sessions by ImGui, so dragging it once is enough.
         Flags = ImGuiWindowFlags.NoTitleBar
               | ImGuiWindowFlags.NoScrollbar
               | ImGuiWindowFlags.NoScrollWithMouse
@@ -40,7 +39,6 @@ public sealed class DebuffWindow : Window
 
         if (config.Locked)
         {
-            // Locked: invisible frame, cannot be moved, clicks pass through to the game.
             Flags |= ImGuiWindowFlags.NoMove
                    | ImGuiWindowFlags.NoBackground
                    | ImGuiWindowFlags.NoInputs;

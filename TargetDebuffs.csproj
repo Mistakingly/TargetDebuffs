@@ -2,7 +2,8 @@
   <PropertyGroup>
     <Version>1.0.0.0</Version>
     <Description>Shows the statuses you apply to your target in a separate, draggable, lockable overlay.</Description>
-    <PackageProjectUrl>https://example.com</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/Mistakingly/TargetDebuffs</PackageProjectUrl>
     <IsPackable>false</IsPackable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 </Project>

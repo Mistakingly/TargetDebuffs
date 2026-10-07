@@ -12,31 +12,23 @@ public class Configuration : IPluginConfiguration
 {
     public int Version { get; set; } = 1;
 
-    // Locked = click-through, no background, cannot be moved.
     public bool Locked { get; set; } = false;
 
-    // Only show statuses applied by you (and optionally your pet/summon).
     public bool OnlyMine { get; set; } = true;
     public bool IncludePets { get; set; } = true;
 
-    // Only show statuses from the DoT list (jobs ticked in settings + your extra names).
     public bool OnlyDoTs { get; set; } = true;
 
-    // Only show statuses while the target counts as a boss (training dummies always count).
     public bool OnlyBosses { get; set; } = false;
 
-    // A hostile enemy with at least this much max HP counts as a boss.
     public int BossMinHp { get; set; } = 3_000_000;
 
-    // Hide the statuses the overlay shows from the game's own target status bar.
     public bool HideNativeBar { get; set; } = false;
     public bool CloseGaps { get; set; } = true;
 
-    // null = defaults (every job on except those in DotList.DefaultOffJobs).
     public HashSet<string>? EnabledJobs { get; set; } = null;
     public List<string> CustomNames { get; set; } = new();
 
-    // Only used when OnlyDoTs is off: show detrimental statuses only.
     public bool OnlyDebuffs { get; set; } = true;
 
     public bool ShowTimers { get; set; } = true;
