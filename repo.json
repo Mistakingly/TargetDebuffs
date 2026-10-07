@@ -5,8 +5,8 @@
     "Punchline": "Your DoTs and debuffs on the target, shown wherever you want.",
     "Description": "Displays the statuses you apply to your current target in a separate overlay that can be dragged anywhere and locked in place. Use /tdebuffs to open settings.",
     "InternalName": "TargetDebuffs",
-    "AssemblyVersion": "2.0.0.4",
-    "TestingAssemblyVersion": "2.0.0.4",
+    "AssemblyVersion": "2.0.0.5",
+    "TestingAssemblyVersion": "2.0.0.5",
     "RepoUrl": "https://github.com/Mistakingly/TargetDebuffs",
     "ApplicableVersion": "any",
     "DalamudApiLevel": 15,
@@ -19,10 +19,10 @@
     "IsHide": "False",
     "IsTestingExclusive": "False",
     "DownloadCount": 0,
-    "LastUpdate": 1791408078,
+    "LastUpdate": 1791408552,
     "LoadPriority": 0,
-    "DownloadLinkInstall": "https://github.com/Mistakingly/TargetDebuffs/releases/download/2.0.0.4/TargetDebuffs.zip",
-    "DownloadLinkTesting": "https://github.com/Mistakingly/TargetDebuffs/releases/download/2.0.0.4/TargetDebuffs.zip",
-    "DownloadLinkUpdate": "https://github.com/Mistakingly/TargetDebuffs/releases/download/2.0.0.4/TargetDebuffs.zip"
+    "DownloadLinkInstall": "https://github.com/Mistakingly/TargetDebuffs/releases/download/2.0.0.5/TargetDebuffs.zip",
+    "DownloadLinkTesting": "https://github.com/Mistakingly/TargetDebuffs/releases/download/2.0.0.5/TargetDebuffs.zip",
+    "DownloadLinkUpdate": "https://github.com/Mistakingly/TargetDebuffs/releases/download/2.0.0.5/TargetDebuffs.zip"
   }
 ]
