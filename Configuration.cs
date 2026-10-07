@@ -22,6 +22,16 @@ public class Configuration : IPluginConfiguration
     // Only show statuses from the DoT list (jobs ticked in settings + your extra names).
     public bool OnlyDoTs { get; set; } = true;
 
+    // Only show statuses while the target counts as a boss (training dummies always count).
+    public bool OnlyBosses { get; set; } = false;
+
+    // A hostile enemy with at least this much max HP counts as a boss.
+    public int BossMinHp { get; set; } = 3_000_000;
+
+    // Hide the statuses the overlay shows from the game's own target status bar.
+    public bool HideNativeBar { get; set; } = false;
+    public bool CloseGaps { get; set; } = true;
+
     // null = defaults (every job on except those in DotList.DefaultOffJobs).
     public HashSet<string>? EnabledJobs { get; set; } = null;
     public List<string> CustomNames { get; set; } = new();

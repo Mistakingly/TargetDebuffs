@@ -1,7 +1,5 @@
-using System.Collections.Generic;
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
-using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface.Textures;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Services;
@@ -11,36 +9,14 @@ namespace TargetDebuffs.Windows;
 public sealed class DebuffWindow : Window
 {
     private readonly Configuration config;
-    private readonly ITargetManager targetManager;
-    private readonly IObjectTable objectTable;
+    private readonly StatusTracker tracker;
     private readonly ITextureProvider textureProvider;
 
-    private readonly struct Entry
-    {
-        public Entry(uint icon, float remaining, ushort stacks, string name)
-        {
-            Icon = icon;
-            Remaining = remaining;
-            Stacks = stacks;
-            Name = name;
-        }
-
-        public uint Icon { get; }
-        public float Remaining { get; }
-        public ushort Stacks { get; }
-        public string Name { get; }
-    }
-
-    public DebuffWindow(
-        Configuration config,
-        ITargetManager targetManager,
-        IObjectTable objectTable,
-        ITextureProvider textureProvider)
+    public DebuffWindow(Configuration config, StatusTracker tracker, ITextureProvider textureProvider)
         : base("Target Debuffs##TargetDebuffsOverlay")
     {
         this.config = config;
-        this.targetManager = targetManager;
-        this.objectTable = objectTable;
+        this.tracker = tracker;
         this.textureProvider = textureProvider;
 
         IsOpen = true;
@@ -73,8 +49,7 @@ public sealed class DebuffWindow : Window
 
     public override void Draw()
     {
-        var allowed = config.OnlyDoTs ? DotList.BuildSet(config) : null;
-        var entries = Collect(allowed);
+        var entries = tracker.Latest.Shown;
 
         if (!config.Locked)
         {
@@ -124,74 +99,6 @@ public sealed class DebuffWindow : Window
                 ImGui.SetTooltip(e.Name);
             }
         }
-    }
-
-    private List<Entry> Collect(HashSet<string>? allowed)
-    {
-        var list = new List<Entry>();
-
-        if (targetManager.Target is not IBattleChara target)
-        {
-            return list;
-        }
-
-        var me = objectTable.LocalPlayer;
-        if (me == null)
-        {
-            return list;
-        }
-
-        foreach (var status in target.StatusList)
-        {
-            if (status.StatusId == 0 || !status.GameData.IsValid)
-            {
-                continue;
-            }
-
-            var row = status.GameData.Value;
-
-            if (config.OnlyMine && !IsMine(status.SourceId, status.SourceObject, me.EntityId))
-            {
-                continue;
-            }
-
-            if (allowed != null)
-            {
-                // DoT filter: match by status name.
-                if (!allowed.Contains(row.Name.ToString()))
-                {
-                    continue;
-                }
-            }
-            else if (config.OnlyDebuffs && row.StatusCategory != 2)
-            {
-                // StatusCategory 2 = detrimental status.
-                continue;
-            }
-
-            var icon = row.Icon;
-            var stacks = status.Param;
-
-            // Stackable statuses use consecutive icon ids, one per stack count.
-            if (row.MaxStacks > 1 && stacks > 1)
-            {
-                icon += (uint)(stacks - 1);
-            }
-
-            list.Add(new Entry(icon, status.RemainingTime, stacks, row.Name.ToString()));
-        }
-
-        return list;
-    }
-
-    private bool IsMine(uint sourceId, IGameObject? sourceObject, uint myEntityId)
-    {
-        if (sourceId == myEntityId)
-        {
-            return true;
-        }
-
-        return config.IncludePets && sourceObject != null && sourceObject.OwnerId == myEntityId;
     }
 
     private void DrawText(

@@ -16,6 +16,9 @@ public sealed class Plugin : IDalamudPlugin
     private readonly WindowSystem windowSystem = new("TargetDebuffs");
     private readonly ConfigWindow configWindow;
     private readonly DebuffWindow debuffWindow;
+    private readonly IFramework framework;
+    private readonly StatusTracker tracker;
+    private readonly TargetBarHider barHider;
 
     public Configuration Config { get; }
 
@@ -24,7 +27,10 @@ public sealed class Plugin : IDalamudPlugin
         ICommandManager commandManager,
         ITargetManager targetManager,
         IObjectTable objectTable,
-        ITextureProvider textureProvider)
+        ITextureProvider textureProvider,
+        IFramework framework,
+        IGameGui gameGui,
+        IPluginLog log)
     {
         this.pluginInterface = pluginInterface;
         this.commandManager = commandManager;
@@ -32,8 +38,12 @@ public sealed class Plugin : IDalamudPlugin
         Config = pluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
         Config.Initialize(pluginInterface);
 
-        configWindow = new ConfigWindow(Config);
-        debuffWindow = new DebuffWindow(Config, targetManager, objectTable, textureProvider);
+        this.framework = framework;
+        tracker = new StatusTracker(Config, targetManager, objectTable);
+        barHider = new TargetBarHider(Config, tracker, gameGui, pluginInterface, log);
+
+        configWindow = new ConfigWindow(Config, tracker, barHider);
+        debuffWindow = new DebuffWindow(Config, tracker, textureProvider);
 
         windowSystem.AddWindow(configWindow);
         windowSystem.AddWindow(debuffWindow);
@@ -43,9 +53,16 @@ public sealed class Plugin : IDalamudPlugin
             HelpMessage = "/tdebuffs: open settings. /tdebuffs lock | unlock | toggle: control the overlay lock.",
         });
 
+        framework.Update += OnFrameworkUpdate;
         pluginInterface.UiBuilder.Draw += windowSystem.Draw;
         pluginInterface.UiBuilder.OpenConfigUi += configWindow.Toggle;
         pluginInterface.UiBuilder.OpenMainUi += configWindow.Toggle;
+    }
+
+    private void OnFrameworkUpdate(IFramework _)
+    {
+        tracker.Update();
+        barHider.Update();
     }
 
     private void OnCommand(string command, string args)
@@ -72,6 +89,8 @@ public sealed class Plugin : IDalamudPlugin
 
     public void Dispose()
     {
+        framework.Update -= OnFrameworkUpdate;
+        barHider.Dispose();
         pluginInterface.UiBuilder.Draw -= windowSystem.Draw;
         pluginInterface.UiBuilder.OpenConfigUi -= configWindow.Toggle;
         pluginInterface.UiBuilder.OpenMainUi -= configWindow.Toggle;

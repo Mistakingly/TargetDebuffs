@@ -7,12 +7,16 @@ namespace TargetDebuffs.Windows;
 public sealed class ConfigWindow : Window
 {
     private readonly Configuration config;
+    private readonly StatusTracker tracker;
+    private readonly TargetBarHider barHider;
     private string newName = string.Empty;
 
-    public ConfigWindow(Configuration config)
+    public ConfigWindow(Configuration config, StatusTracker tracker, TargetBarHider barHider)
         : base("Target Debuffs Settings##TargetDebuffsConfig", ImGuiWindowFlags.AlwaysAutoResize)
     {
         this.config = config;
+        this.tracker = tracker;
+        this.barHider = barHider;
         Size = new Vector2(360, 0);
         SizeCondition = ImGuiCond.FirstUseEver;
     }
@@ -63,6 +67,12 @@ public sealed class ConfigWindow : Window
                 config.Save();
             }
         }
+
+        ImGui.Separator();
+        DrawBossSettings();
+
+        ImGui.Separator();
+        DrawNativeBarSettings();
 
         ImGui.Separator();
         ImGui.Text("Text");
@@ -124,6 +134,66 @@ public sealed class ConfigWindow : Window
         {
             config.Spacing = spacing;
             config.Save();
+        }
+    }
+
+    private void DrawBossSettings()
+    {
+        var onlyBosses = config.OnlyBosses;
+        if (ImGui.Checkbox("Only show on bosses (Striking Dummies count)", ref onlyBosses))
+        {
+            config.OnlyBosses = onlyBosses;
+            config.Save();
+        }
+
+        if (!config.OnlyBosses)
+        {
+            return;
+        }
+
+        var minHp = config.BossMinHp;
+        ImGui.SetNextItemWidth(160);
+        if (ImGui.InputInt("Boss min max-HP", ref minHp, 100000, 1000000))
+        {
+            config.BossMinHp = minHp < 0 ? 0 : minHp;
+            config.Save();
+        }
+
+        ImGui.TextDisabled("Enemies with at least this much max HP count as bosses; dummies always do.");
+
+        var snap = tracker.Latest;
+        if (snap.TargetId != 0)
+        {
+            ImGui.TextDisabled($"Current target: {snap.TargetName}, max HP {snap.TargetMaxHp:N0}, boss: {(snap.IsBoss ? "yes" : "no")}");
+        }
+    }
+
+    private void DrawNativeBarSettings()
+    {
+        var hide = config.HideNativeBar;
+        if (ImGui.Checkbox("Hide these statuses on the game's target bar", ref hide))
+        {
+            config.HideNativeBar = hide;
+            config.Save();
+        }
+
+        ImGui.TextDisabled("Only the statuses this overlay shows, and only ones you applied yourself.");
+
+        if (!config.HideNativeBar)
+        {
+            return;
+        }
+
+        var closeGaps = config.CloseGaps;
+        if (ImGui.Checkbox("Close the gaps they leave", ref closeGaps))
+        {
+            config.CloseGaps = closeGaps;
+            config.Save();
+        }
+
+        if (barHider.BigPlayerDebuffsLoaded)
+        {
+            ImGui.TextWrapped("BigPlayerDebuffs is loaded, so gaps are left open to avoid the two plugins fighting over icon positions. Since your own debuffs are hidden here, you can turn BigPlayerDebuffs off.");
         }
     }
 
