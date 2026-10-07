@@ -3,6 +3,8 @@ using System.Collections.Generic;
 
 namespace TargetDebuffs;
 
+// Statuses are matched by their in-game name (in your game client's language).
+// If one is missing or named differently, add it under "Extra status names" in settings.
 public static class DotList
 {
     public static readonly (string Job, string[] Names)[] Groups =
@@ -23,6 +25,7 @@ public static class DotList
         ("GNB", new[] { "Sonic Break", "Bow Shock" }),
     };
 
+    // Jobs that start switched off until you tick them.
     public static readonly string[] DefaultOffJobs = { "GNB" };
 
     public static HashSet<string> BuildSet(Configuration config)
