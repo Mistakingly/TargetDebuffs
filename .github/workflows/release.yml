@@ -1,67 +1,82 @@
-name: Release
+name: Build and release
 
 on:
-  push:
-    tags:
-      - '*'
+  # Runs automatically whenever you publish a release on GitHub
+  release:
+    types: [published]
+  # Lets you run it by hand from the Actions tab for an existing release
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to build (e.g. 1.0.0.0)"
+        required: true
 
 permissions:
   contents: write
 
 jobs:
-  release:
-    runs-on: ubuntu-latest
+  build:
+    runs-on: windows-latest
+    env:
+      TAG: ${{ github.event.release.tag_name || inputs.tag }}
+      GH_TOKEN: ${{ github.token }}
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out the release tag
+        uses: actions/checkout@v4
         with:
-          ref: main
+          ref: ${{ env.TAG }}
           fetch-depth: 0
 
-      - uses: actions/setup-dotnet@v4
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '10.0.x'
+          dotnet-version: |
+            9.0.x
+            10.0.x
 
       - name: Download Dalamud
+        shell: pwsh
         run: |
-          wget https://goatcorp.github.io/dalamud-distrib/latest.zip -O latest-dalamud.zip
-          mkdir -p /home/runner/dalamud
-          unzip latest-dalamud.zip -d /home/runner/dalamud
+          $dest = "$env:APPDATA\XIVLauncher\addon\Hooks\dev"
+          New-Item -ItemType Directory -Force -Path $dest | Out-Null
+          Invoke-WebRequest https://goatcorp.github.io/dalamud-distrib/latest.zip -OutFile dalamud.zip
+          Expand-Archive dalamud.zip -DestinationPath $dest -Force
+          Add-Content $env:GITHUB_ENV "DALAMUD_HOME=$dest"
 
       - name: Build
-        env:
-          DALAMUD_HOME: /home/runner/dalamud
-        run: dotnet build TargetDebuffs.csproj -c Release -p:Version=${{ github.ref_name }}
+        shell: pwsh
+        run: dotnet build TargetDebuffs.csproj -c Release -p:Version=$env:TAG -p:AssemblyVersion=$env:TAG -p:FileVersion=$env:TAG
 
-      - name: Locate package
+      - name: Attach zip to the release
+        shell: pwsh
         run: |
-          ZIP=$(find . -name latest.zip | head -n 1)
-          echo "Found: $ZIP"
-          cp "$ZIP" TargetDebuffs.zip
+          $zip = Get-ChildItem -Path bin -Recurse -Filter latest.zip | Select-Object -First 1
+          if (-not $zip) { throw "latest.zip not found - is DalamudPackager set up in the project?" }
+          Copy-Item $zip.FullName TargetDebuffs.zip
+          gh release upload $env:TAG TargetDebuffs.zip --clobber
 
-      - name: Create release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: TargetDebuffs.zip
-
-      - name: Update repo.json
+      - name: Update repo.json on main
+        shell: pwsh
         run: |
-          VERSION=${{ github.ref_name }}
-          URL="https://github.com/${{ github.repository }}/releases/download/${VERSION}/TargetDebuffs.zip"
-          NOW=$(date +%s)
-          jq --arg v "$VERSION" --arg u "$URL" --argjson t "$NOW" --arg repo "https://github.com/${{ github.repository }}" '
-            .[0].AssemblyVersion = $v
-            | .[0].TestingAssemblyVersion = $v
-            | .[0].RepoUrl = $repo
-            | .[0].DownloadLinkInstall = $u
-            | .[0].DownloadLinkTesting = $u
-            | .[0].DownloadLinkUpdate = $u
-            | .[0].LastUpdate = $t' repo.json > repo.tmp
-          mv repo.tmp repo.json
-
-      - name: Commit repo.json
-        run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@users.noreply.github.com"
+          git fetch origin main
+          git checkout -B main origin/main
+          $url = "https://github.com/${{ github.repository }}/releases/download/$env:TAG/TargetDebuffs.zip"
+          $plugins = @(Get-Content repo.json -Raw | ConvertFrom-Json)
+          foreach ($p in $plugins) {
+            $p.AssemblyVersion = $env:TAG
+            $p.TestingAssemblyVersion = $env:TAG
+            $p.DownloadLinkInstall = $url
+            $p.DownloadLinkTesting = $url
+            $p.DownloadLinkUpdate = $url
+            $p.LastUpdate = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
+          }
+          ConvertTo-Json -InputObject $plugins -Depth 10 | Set-Content repo.json -Encoding utf8NoBOM
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add repo.json
-          git commit -m "Update repo.json for ${{ github.ref_name }}" || echo "No changes"
-          git push origin HEAD:main
+          git diff --cached --quiet
+          if ($LASTEXITCODE -ne 0) {
+            git commit -m "Update repo.json for $env:TAG"
+            git push origin main
+          }
