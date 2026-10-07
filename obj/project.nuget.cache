@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "6DHN5IBPvjM=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\ceeja\\OneDrive\\Documents\\TargetDebuffs\\TargetDebuffs.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\ceeja\\.nuget\\packages\\dalamudpackager\\15.0.0\\dalamudpackager.15.0.0.nupkg.sha512",
+    "C:\\Users\\ceeja\\.nuget\\packages\\dotnet.reproduciblebuilds\\1.2.39\\dotnet.reproduciblebuilds.1.2.39.nupkg.sha512"
+  ],
+  "logs": []
+}
