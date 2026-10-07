@@ -1,6 +1,6 @@
 <Project Sdk="Dalamud.NET.Sdk/15.0.0">
   <PropertyGroup>
-    <Version>1.0.0.0</Version>
+    <Version>2.0.0.6</Version>
     <Description>Shows the statuses you apply to your target in a separate, draggable, lockable overlay.</Description>
     <PackageProjectUrl>https://github.com/Mistakingly/TargetDebuffs</PackageProjectUrl>
     <IsPackable>false</IsPackable>
