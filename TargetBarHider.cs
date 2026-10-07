@@ -94,6 +94,9 @@ public sealed unsafe class TargetBarHider : IDisposable
                 return;
             }
 
+            // Re-read the target's statuses right now, so a status applied this very frame is already
+            // included and gets hidden before the first draw (otherwise it flashes for one frame).
+            tracker.Update();
             ApplyToAddon(a, restoreOnly: false);
         }
         catch (Exception ex)
