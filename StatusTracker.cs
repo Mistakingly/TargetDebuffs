@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Plugin.Services;
 
@@ -164,7 +163,7 @@ public sealed class StatusTracker
     }
 
     // There is no reliable "is boss" flag exposed to plugins, so this is a heuristic:
-    // training dummies always count, and so does any hostile enemy whose max HP reaches the threshold.
+    // training dummies always count, and so does any NPC target whose max HP reaches the threshold.
     private bool IsBoss(IBattleChara target)
     {
         if (target.Name.TextValue.Contains("Dummy", StringComparison.OrdinalIgnoreCase))
@@ -172,8 +171,7 @@ public sealed class StatusTracker
             return true;
         }
 
-        return target is IBattleNpc npc
-               && npc.BattleNpcKind == BattleNpcSubKind.Enemy
+        return target is IBattleNpc
                && target.MaxHp >= (uint)Math.Max(0, config.BossMinHp);
     }
 }
