@@ -29,7 +29,6 @@ public sealed class DebuffWindow : Window
 
     public override void PreDraw()
     {
-        // The window position is remembered between sessions by ImGui, so dragging it once is enough.
         Flags = ImGuiWindowFlags.NoTitleBar
               | ImGuiWindowFlags.NoScrollbar
               | ImGuiWindowFlags.NoScrollWithMouse
@@ -40,7 +39,6 @@ public sealed class DebuffWindow : Window
 
         if (config.Locked)
         {
-            // Locked: invisible frame, cannot be moved, clicks pass through to the game.
             Flags |= ImGuiWindowFlags.NoMove
                    | ImGuiWindowFlags.NoBackground
                    | ImGuiWindowFlags.NoInputs;
@@ -76,8 +74,15 @@ public sealed class DebuffWindow : Window
                 ImGui.SameLine(0, config.Spacing);
             }
 
-            var tex = textureProvider.GetFromGameIcon(new GameIconLookup(e.Icon)).GetWrapOrEmpty();
-            ImGui.Image(tex.Handle, iconSize);
+            var wrap = textureProvider.GetFromGameIcon(new GameIconLookup(e.Icon)).GetWrapOrDefault();
+            if (wrap != null)
+            {
+                ImGui.Image(wrap.Handle, iconSize);
+            }
+            else
+            {
+                ImGui.Dummy(iconSize);
+            }
 
             var min = ImGui.GetItemRectMin();
             var max = ImGui.GetItemRectMax();

@@ -1,6 +1,10 @@
+using System.Collections.Generic;
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Windowing;
+using Dalamud.Plugin.Services;
+using Lumina.Excel;
+using Lumina.Excel.Sheets;
 
 namespace TargetDebuffs.Windows;
 
@@ -9,11 +13,13 @@ public sealed class ConfigWindow : Window
     private readonly Configuration config;
     private readonly StatusTracker tracker;
     private readonly TargetBarHider barHider;
+    private readonly ExcelSheet<Status>? statusSheet;
     private string newName = string.Empty;
 
-    public ConfigWindow(Configuration config, StatusTracker tracker, TargetBarHider barHider)
+    public ConfigWindow(Configuration config, StatusTracker tracker, TargetBarHider barHider, IDataManager dataManager)
         : base("Target Debuffs Settings##TargetDebuffsConfig", ImGuiWindowFlags.AlwaysAutoResize)
     {
+        statusSheet = dataManager.GetExcelSheet<Status>();
         this.config = config;
         this.tracker = tracker;
         this.barHider = barHider;
@@ -197,6 +203,25 @@ public sealed class ConfigWindow : Window
         }
     }
 
+    private string DescribeGroup(uint[] statusIds)
+    {
+        var names = new List<string>();
+
+        foreach (var id in statusIds)
+        {
+            if (statusSheet != null && statusSheet.TryGetRow(id, out var row))
+            {
+                var name = row.Name.ToString();
+                if (!string.IsNullOrEmpty(name) && !names.Contains(name))
+                {
+                    names.Add(name);
+                }
+            }
+        }
+
+        return names.Count > 0 ? string.Join(", ", names) : "Unknown";
+    }
+
     private void DrawDotSettings()
     {
         if (ImGui.CollapsingHeader("DoT jobs (tick the ones you want to see)"))
@@ -217,7 +242,7 @@ public sealed class ConfigWindow : Window
 
                 if (ImGui.IsItemHovered())
                 {
-                    ImGui.SetTooltip(string.Join(", ", group.Names));
+                    ImGui.SetTooltip(DescribeGroup(group.StatusIds));
                 }
 
                 i++;

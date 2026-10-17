@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyDescriptionAttribute(("Shows the statuses you apply to your target in a separate, draggable, lockable ov" +
     "erlay."))]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("2.0.0.6")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("2.0.0.6+c4327d97ad3b1e994fca787b5c03a7bc13525dbf")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("2.0.0.6+8083aca07e9b2d8329832feb85651fad50b35c1e")]
 [assembly: System.Reflection.AssemblyProductAttribute("TargetDebuffs")]
 [assembly: System.Reflection.AssemblyTitleAttribute("TargetDebuffs")]
 [assembly: System.Reflection.AssemblyVersionAttribute("2.0.0.6")]

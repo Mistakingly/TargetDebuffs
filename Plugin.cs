@@ -31,6 +31,7 @@ public sealed class Plugin : IDalamudPlugin
         IFramework framework,
         IGameGui gameGui,
         IAddonLifecycle addonLifecycle,
+        IDataManager dataManager,
         IPluginLog log)
     {
         this.pluginInterface = pluginInterface;
@@ -43,7 +44,7 @@ public sealed class Plugin : IDalamudPlugin
         tracker = new StatusTracker(Config, targetManager, objectTable);
         barHider = new TargetBarHider(Config, tracker, gameGui, addonLifecycle, pluginInterface, log);
 
-        configWindow = new ConfigWindow(Config, tracker, barHider);
+        configWindow = new ConfigWindow(Config, tracker, barHider, dataManager);
         debuffWindow = new DebuffWindow(Config, tracker, textureProvider);
 
         windowSystem.AddWindow(configWindow);

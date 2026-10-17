@@ -44,14 +44,10 @@ public sealed class StatusSnapshot
         IsBoss = isBoss;
     }
 
-    // Statuses the overlay displays.
     public List<StatusEntry> Shown { get; }
 
-    // One flag per status YOU applied (in status-list order): true = the overlay shows it.
-    // The game lists a target's statuses with your own first, so this lines up with the first slots of its bar.
     public List<bool> OwnHideFlags { get; }
 
-    // Number of statuses currently on the target that have an icon (slots in use on the game's bar).
     public int Total { get; }
 
     public uint TargetId { get; }
@@ -60,7 +56,6 @@ public sealed class StatusSnapshot
     public bool IsBoss { get; }
 }
 
-// Works out, once per frame, which statuses the overlay shows and which of the game's bar slots to hide.
 public sealed class StatusTracker
 {
     private readonly Configuration config;
@@ -90,7 +85,7 @@ public sealed class StatusTracker
         var total = 0;
 
         var isBoss = IsBoss(target);
-        var allowedNames = config.OnlyDoTs ? DotList.BuildSet(config) : null;
+        var allowed = config.OnlyDoTs ? DotList.Build(config) : null;
         var bossOk = !config.OnlyBosses || isBoss;
 
         foreach (var status in target.StatusList)
@@ -109,7 +104,7 @@ public sealed class StatusTracker
             total++;
 
             var isOwn = status.SourceId == me.EntityId;
-            var show = bossOk && ShouldShow(status, row, allowedNames, me.EntityId);
+            var show = bossOk && ShouldShow(status, row, allowed, me.EntityId);
 
             if (isOwn)
             {
@@ -124,7 +119,6 @@ public sealed class StatusTracker
             var icon = row.Icon;
             var stacks = status.Param;
 
-            // Stackable statuses use consecutive icon ids, one per stack count.
             if (row.MaxStacks > 1 && stacks > 1)
             {
                 icon += (uint)(stacks - 1);
@@ -140,7 +134,7 @@ public sealed class StatusTracker
     private bool ShouldShow(
         Dalamud.Game.ClientState.Statuses.IStatus status,
         Lumina.Excel.Sheets.Status row,
-        System.Collections.Generic.HashSet<string>? allowedNames,
+        DotFilter? allowed,
         uint myEntityId)
     {
         if (config.OnlyMine)
@@ -153,17 +147,14 @@ public sealed class StatusTracker
             }
         }
 
-        if (allowedNames != null)
+        if (allowed != null)
         {
-            return allowedNames.Contains(row.Name.ToString());
+            return allowed.Contains(status.StatusId, row.Name.ToString());
         }
 
-        // StatusCategory 2 = detrimental status.
         return !config.OnlyDebuffs || row.StatusCategory == 2;
     }
 
-    // There is no reliable "is boss" flag exposed to plugins, so this is a heuristic:
-    // training dummies always count, and so does any NPC target whose max HP reaches the threshold.
     private bool IsBoss(IBattleChara target)
     {
         if (target.Name.TextValue.Contains("Dummy", StringComparison.OrdinalIgnoreCase))
